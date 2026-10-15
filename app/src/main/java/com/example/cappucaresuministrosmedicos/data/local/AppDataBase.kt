@@ -1,6 +1,6 @@
 package com.example.cappucaresuministrosmedicos.data.local
 
-import ProductoDao
+import com.example.cappucaresuministrosmedicos.data.local.dao.ProductoDao
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.cappucaresuministrosmedicos.data.local.entity.ProductoEntity
