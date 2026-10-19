@@ -1,4 +1,4 @@
-package com.example.cappucaresuministrosmedicos.data.local.entity
+package com.example.cappucaresuministrosmedicos.model.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -9,8 +9,9 @@ data class ProductoEntity(
     val nombre: String,
     val descripcion: String,
     val categoria: String,
-    val stock_disponible: Int,
-    val unidad_medida: String,
-    val stock_minimo: Int,
-    val lugar_almacenamiento: String
+    val stockDisponible: Int,
+    val unidadMedida: String,
+    val stockMinimo: Int,
+    val lugarAlmacenamiento: String,
+    val activo: Boolean = true
 )
