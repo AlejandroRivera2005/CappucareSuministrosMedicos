@@ -20,7 +20,7 @@ enum class MotivoMovimiento { RECEPCION, VENTA, MERMA, AJUSTE }
 )
 data class MovimientoEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val productoId: String,
+    val productoId: Long,
     val tipo: TipoMovimiento,
     val cantidad: Int,
     val motivo: MotivoMovimiento,
