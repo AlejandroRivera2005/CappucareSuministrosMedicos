@@ -16,7 +16,7 @@ interface ProductoDao {
     fun observarTodos(): Flow<List<ProductoEntity>>
 
     @Query("SELECT * FROM productos WHERE id = :id")
-    fun observarPorId(id: String): Flow<ProductoEntity?>
+    fun observarPorId(id: Long): Flow<ProductoEntity?>
 
     @Insert
     suspend fun insertar(producto: ProductoEntity)
