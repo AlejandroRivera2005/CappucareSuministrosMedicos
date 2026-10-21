@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "productos")
 data class ProductoEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey val id: Long,
     val nombre: String,
     val descripcion: String,
     val categoria: String,

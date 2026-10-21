@@ -11,7 +11,7 @@ interface MovimientoDao {
     suspend fun insertar(movimiento: MovimientoEntity)
 
     @Query("SELECT * FROM movimientos WHERE productoId = :productoId ORDER BY fecha DESC")
-    fun observarPorProducto(productoId: String): Flow<List<MovimientoEntity>>
+    fun observarPorProducto(productoId: Long): Flow<List<MovimientoEntity>>
 
     @Query("SELECT * FROM movimientos ORDER BY fecha DESC LIMIT :limite")
     fun observarRecientes(limite: Int): Flow<List<MovimientoEntity>>
