@@ -54,6 +54,16 @@ object Validadores {
         }
     }
 
+    fun idProducto(valor: String): String? {
+        val numero = valor.trim().toLongOrNull()
+        return when {
+            valor.isBlank() -> "El ID es obligatorio"
+            numero == null -> "El ID debe ser un número entero"
+            numero <= 0 -> "El ID debe ser mayor a 0"
+            else -> null
+        }
+    }
+
     // ---------- Movimiento ----------
 
     fun cantidadMovimiento(cantidad: Int, stockActual: Int, esSalida: Boolean): String? = when {

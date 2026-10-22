@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.cappucaresuministrosmedicos.view.HomeScreen
+import com.example.cappucaresuministrosmedicos.view.navigation.AppNavHost
 import com.example.cappucaresuministrosmedicos.view.theme.CappucareSuministrosMedicosTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,10 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CappucareSuministrosMedicosTheme {
-                HomeScreen(
-                    onIrAProductos = { /* TODO: navegar a gestión de productos */ },
-                    onIrAMovimientos = { /* TODO: navegar a gestión de movimientos */ }
-                )
+                AppNavHost()
             }
         }
     }

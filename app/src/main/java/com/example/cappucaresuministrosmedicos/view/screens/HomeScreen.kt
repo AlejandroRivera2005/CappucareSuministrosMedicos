@@ -1,4 +1,4 @@
-package com.example.cappucaresuministrosmedicos.view
+package com.example.cappucaresuministrosmedicos.view.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

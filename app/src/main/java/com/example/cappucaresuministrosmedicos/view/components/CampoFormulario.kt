@@ -29,7 +29,8 @@ fun CampoFormulario(
     error: String?,
     modifier: Modifier = Modifier,
     teclado: KeyboardType = KeyboardType.Text,
-    esContrasena: Boolean = false
+    esContrasena: Boolean = false,
+    habilitado: Boolean = true
 ) {
     var visible by remember { mutableStateOf(false) }
 
@@ -37,6 +38,7 @@ fun CampoFormulario(
         OutlinedTextField(
             value = valor,
             onValueChange = onCambio,
+            enabled = habilitado,
             label = { Text(etiqueta) },
             leadingIcon = { Icon(icono, contentDescription = null) },
             trailingIcon = {
