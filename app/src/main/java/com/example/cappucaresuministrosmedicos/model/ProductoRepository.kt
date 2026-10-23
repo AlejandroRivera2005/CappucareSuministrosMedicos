@@ -21,4 +21,9 @@ class ProductoRepository @Inject constructor(
     suspend fun actualizar(producto: ProductoEntity) = productoDao.actualizar(producto)
 
     suspend fun eliminar(producto: ProductoEntity) = productoDao.eliminar(producto)
+
+    suspend fun obtenerPorId(id: Long) = productoDao.obtenerPorId(id)
+
+
+    fun observarBajoMinimo() = productoDao.observarBajoMinimo()
 }

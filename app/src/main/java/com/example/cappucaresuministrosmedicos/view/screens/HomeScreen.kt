@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import com.example.cappucaresuministrosmedicos.view.theme.CappucareSuministrosMe
 fun HomeScreen(
     onIrAProductos: () -> Unit,
     onIrAMovimientos: () -> Unit,
+    onIrAEscaner: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -70,6 +72,17 @@ fun HomeScreen(
             ) {
                 Text("Revisar movimientos", style = MaterialTheme.typography.titleMedium)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onIrAEscaner,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            ) {
+                Text("Escanear código", style = MaterialTheme.typography.titleMedium)
+            }
         }
     }
 }
@@ -78,6 +91,6 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     CappucareSuministrosMedicosTheme {
-        HomeScreen(onIrAProductos = {}, onIrAMovimientos = {})
+        HomeScreen(onIrAProductos = {}, onIrAMovimientos = {}, onIrAEscaner = {})
     }
 }

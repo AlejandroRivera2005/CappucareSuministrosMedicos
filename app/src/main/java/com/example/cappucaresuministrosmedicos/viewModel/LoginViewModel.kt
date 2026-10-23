@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.cappucaresuministrosmedicos.model.SesionUsuario
 
 data class LoginUiState(
     val correo: String = "",
@@ -25,7 +26,8 @@ data class LoginUiState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val usuarioRepository: UsuarioRepository
+    private val usuarioRepository: UsuarioRepository,
+    private val sesion: SesionUsuario
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -62,7 +64,9 @@ class LoginViewModel @Inject constructor(
             val resultado = usuarioRepository.iniciarSesion(
                 correo = actual.correo.trim().lowercase(),
                 contrasena = actual.contrasena
+
             )
+            resultado.onSuccess { usuario -> sesion.iniciar(usuario.nombre, usuario.perfil) }
             _uiState.update {
                 resultado.fold(
                     onSuccess = { usuario -> it.copy(cargando = false, perfilIngresado = usuario.perfil) },

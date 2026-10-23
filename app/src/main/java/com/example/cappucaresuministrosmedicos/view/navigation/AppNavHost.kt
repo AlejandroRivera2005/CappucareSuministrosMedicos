@@ -6,8 +6,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
+import com.example.cappucaresuministrosmedicos.view.screens.EscanerScreen
 import com.example.cappucaresuministrosmedicos.view.screens.HomeScreen
 import com.example.cappucaresuministrosmedicos.view.screens.LoginScreen
+import com.example.cappucaresuministrosmedicos.view.screens.MovimientoScreen
 import com.example.cappucaresuministrosmedicos.view.screens.ProductoDetalleScreen
 import com.example.cappucaresuministrosmedicos.view.screens.ProductoFormScreen
 import com.example.cappucaresuministrosmedicos.view.screens.ProductoListaScreen
@@ -17,13 +20,16 @@ object Rutas {
     const val login = "login"
     const val registro = "registro"
     const val home = "home"
+    const val escaner = "escaner"
     const val productos = "productos"
     const val producto_nuevo = "productos/nuevo"
     const val producto_detalle = "producto/{productoId}"
     const val producto_editar = "producto/{productoId}/editar"
+    const val producto_movimiento = "producto/{productoId}/movimiento/{tipo}"
 
     fun detalle(id: Long) = "producto/$id"
     fun editar(id: Long) = "producto/$id/editar"
+    fun movimiento(id: Long, tipo: TipoMovimiento) = "producto/$id/movimiento/${tipo.name}"
 }
 
 @Composable
@@ -54,8 +60,13 @@ fun AppNavHost() {
         composable(Rutas.home) {
             HomeScreen(
                 onIrAProductos = { navController.navigate(Rutas.productos) },
-                onIrAMovimientos = { /* TODO: navegar a movimientos */ }
+                onIrAMovimientos = { /* TODO: navegar a movimientos */ },
+                onIrAEscaner = { navController.navigate(Rutas.escaner) }
             )
+        }
+
+        composable(Rutas.escaner) {
+            EscanerScreen(onVolver = { navController.popBackStack() })
         }
 
         composable(Rutas.productos) {
@@ -78,12 +89,25 @@ fun AppNavHost() {
             ProductoDetalleScreen(
                 onVolver = { navController.popBackStack() },
                 onEditar = { navController.navigate(Rutas.editar(id)) },
-                onEliminado = { navController.popBackStack() }
+                onEliminado = { navController.popBackStack() },
+                onRegistrarMovimiento = { tipo ->
+                    navController.navigate(Rutas.movimiento(id, tipo))
+                }
             )
         }
 
         composable(Rutas.producto_editar, arguments = argProducto) {
             ProductoFormScreen(
+                onVolver = { navController.popBackStack() },
+                onGuardado = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            Rutas.producto_movimiento,
+            arguments = argProducto + navArgument("tipo") { type = NavType.StringType }
+        ) {
+            MovimientoScreen(
                 onVolver = { navController.popBackStack() },
                 onGuardado = { navController.popBackStack() }
             )

@@ -35,8 +35,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
 import com.example.cappucaresuministrosmedicos.view.components.EtiquetaEstado
 import com.example.cappucaresuministrosmedicos.viewModel.ProductoDetalleViewModel
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +47,7 @@ fun ProductoDetalleScreen(
     onVolver: () -> Unit,
     onEditar: () -> Unit,
     onEliminado: () -> Unit,
+    onRegistrarMovimiento: (TipoMovimiento) -> Unit,
     viewModel: ProductoDetalleViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -158,7 +162,21 @@ fun ProductoDetalleScreen(
                         )
                     }
                 }
-
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = { onRegistrarMovimiento(TipoMovimiento.INGRESO) },
+                        enabled = producto.activo,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Ingreso") }
+                    OutlinedButton(
+                        onClick = { onRegistrarMovimiento(TipoMovimiento.SALIDA) },
+                        enabled = producto.activo,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Salida / venta") }
+                }
                 if (estado.errorGeneral != null) {
                     Text(
                         text = estado.errorGeneral.orEmpty(),

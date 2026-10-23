@@ -8,7 +8,6 @@ import androidx.room.Update
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
 import kotlinx.coroutines.flow.Flow
 
-
 @Dao
 interface ProductoDao {
 
@@ -18,13 +17,22 @@ interface ProductoDao {
     @Query("SELECT * FROM productos WHERE id = :id")
     fun observarPorId(id: Long): Flow<ProductoEntity?>
 
+    @Query("SELECT * FROM productos WHERE id = :id")
+    suspend fun obtenerPorId(id: Long): ProductoEntity?
+
+    @Query(
+        "SELECT * FROM productos " +
+                "WHERE activo = 1 AND stockDisponible <= stockMinimo " +
+                "ORDER BY stockDisponible"
+    )
+    fun observarBajoMinimo(): Flow<List<ProductoEntity>>
+
     @Insert
     suspend fun insertar(producto: ProductoEntity)
-
 
     @Update
     suspend fun actualizar(producto: ProductoEntity)
 
     @Delete
-    suspend fun eliminar(task: ProductoEntity)
+    suspend fun eliminar(producto: ProductoEntity)
 }
