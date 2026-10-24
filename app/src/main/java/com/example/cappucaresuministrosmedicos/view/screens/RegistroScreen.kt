@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -27,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,9 +47,18 @@ fun RegistroScreen(
 ) {
     val estado by viewModel.uiState.collectAsState()
 
-
-    LaunchedEffect(estado.registroExitoso) {
-        if (estado.registroExitoso) onRegistroExitoso()
+    // Al registrarse, se avisa que la cuenta queda pendiente de aprobación
+    if (estado.registroExitoso) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Cuenta creada") },
+            text = {
+                Text("Un encargado debe aprobar tu cuenta antes de que puedas iniciar sesión.")
+            },
+            confirmButton = {
+                TextButton(onClick = onRegistroExitoso) { Text("Entendido") }
+            }
+        )
     }
 
     val entrada = remember { MutableTransitionState(false).apply { targetState = true } }
@@ -120,7 +129,6 @@ fun RegistroScreen(
                     )
                 }
             }
-
 
             AnimatedVisibility(visible = estado.errorGeneral != null) {
                 Text(

@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,9 +25,14 @@ import com.example.cappucaresuministrosmedicos.view.theme.CappucareSuministrosMe
 
 @Composable
 fun HomeScreen(
+    nombre: String,
+    esEncargado: Boolean,
+    pendientes: Int,
     onIrAProductos: () -> Unit,
     onIrAMovimientos: () -> Unit,
     onIrAEscaner: () -> Unit,
+    onIrAUsuarios: () -> Unit,
+    onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -49,8 +55,15 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            if (nombre.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Hola, $nombre",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
                 onClick = onIrAProductos,
@@ -83,6 +96,28 @@ fun HomeScreen(
             ) {
                 Text("Escanear código", style = MaterialTheme.typography.titleMedium)
             }
+
+            // Solo el encargado aprueba cuentas
+            if (esEncargado) {
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedButton(
+                    onClick = onIrAUsuarios,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Text(
+                        if (pendientes > 0) "Aprobar usuarios ($pendientes)" else "Aprobar usuarios",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            TextButton(onClick = onCerrarSesion) {
+                Text("Cerrar sesión")
+            }
         }
     }
 }
@@ -91,6 +126,15 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     CappucareSuministrosMedicosTheme {
-        HomeScreen(onIrAProductos = {}, onIrAMovimientos = {}, onIrAEscaner = {})
+        HomeScreen(
+            nombre = "Encargado Demo",
+            esEncargado = true,
+            pendientes = 2,
+            onIrAProductos = {},
+            onIrAMovimientos = {},
+            onIrAEscaner = {},
+            onIrAUsuarios = {},
+            onCerrarSesion = {}
+        )
     }
 }

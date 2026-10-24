@@ -11,6 +11,11 @@ import javax.inject.Singleton
 class UsuarioRepository @Inject constructor(
     private val usuarioDao: UsuarioDao
 ) {
+    fun observarPendientes() = usuarioDao.observarPendientes()
+
+    suspend fun aprobar(id: Long) = usuarioDao.aprobar(id)
+
+    suspend fun rechazar(id: Long) = usuarioDao.eliminar(id)
 
     suspend fun registrar(
         nombre: String,

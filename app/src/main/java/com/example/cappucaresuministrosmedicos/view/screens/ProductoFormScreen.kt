@@ -125,8 +125,16 @@ fun ProductoFormScreen(
                 etiqueta = "Stock disponible",
                 icono = Icons.Default.ShoppingCart,
                 error = estado.errorStock,
-                teclado = KeyboardType.Number
+                teclado = KeyboardType.Number,
+                habilitado = !estado.esEdicion
             )
+            if (estado.esEdicion) {
+                Text(
+                    "El stock se modifica registrando ingresos y salidas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             CampoFormulario(
                 valor = estado.unidadMedida,
                 onCambio = viewModel::onUnidadChange,

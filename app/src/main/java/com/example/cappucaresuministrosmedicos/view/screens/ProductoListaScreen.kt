@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
 import com.example.cappucaresuministrosmedicos.view.components.EtiquetaEstado
+import com.example.cappucaresuministrosmedicos.viewModel.EstadoStock
 import com.example.cappucaresuministrosmedicos.viewModel.ProductoListaViewModel
+import com.example.cappucaresuministrosmedicos.viewModel.estadoStock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +45,7 @@ fun ProductoListaScreen(
     onVolver: () -> Unit,
     onNuevo: () -> Unit,
     onVerDetalle: (Long) -> Unit,
+    puedeCrear: Boolean,
     viewModel: ProductoListaViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -60,8 +63,11 @@ fun ProductoListaScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNuevo) {
-                Icon(Icons.Default.Add, contentDescription = "Nuevo producto")
+            // Solo el encargado puede crear productos
+            if (puedeCrear) {
+                FloatingActionButton(onClick = onNuevo) {
+                    Icon(Icons.Default.Add, contentDescription = "Nuevo producto")
+                }
             }
         }
     ) { innerPadding ->
@@ -88,9 +94,11 @@ fun ProductoListaScreen(
 
                 estado.productos.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = if (estado.totalProductos == 0)
-                            "Aún no hay productos. Toca + para crear el primero."
-                        else "Ningún producto coincide con la búsqueda.",
+                        text = when {
+                            estado.totalProductos > 0 -> "Ningún producto coincide con la búsqueda."
+                            puedeCrear -> "Aún no hay productos. Toca + para crear el primero."
+                            else -> "Aún no hay productos."
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -134,12 +142,18 @@ private fun ProductoCard(producto: ProductoEntity, onClick: () -> Unit) {
                 )
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (producto.stockDisponible <= producto.stockMinimo) {
-                    EtiquetaEstado(
-                        texto = "Stock bajo",
+                when (producto.estadoStock()) {
+                    EstadoStock.AGOTADO -> EtiquetaEstado(
+                        texto = "Agotado",
                         fondo = MaterialTheme.colorScheme.errorContainer,
                         contenido = MaterialTheme.colorScheme.onErrorContainer
                     )
+                    EstadoStock.BAJO_MINIMO -> EtiquetaEstado(
+                        texto = "Bajo mínimo",
+                        fondo = MaterialTheme.colorScheme.tertiaryContainer,
+                        contenido = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    EstadoStock.DISPONIBLE -> Unit
                 }
                 if (!producto.activo) {
                     EtiquetaEstado(

@@ -14,12 +14,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,9 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
 import com.example.cappucaresuministrosmedicos.view.components.EtiquetaEstado
+import com.example.cappucaresuministrosmedicos.view.components.HistorialProducto
+import com.example.cappucaresuministrosmedicos.viewModel.EstadoStock
 import com.example.cappucaresuministrosmedicos.viewModel.ProductoDetalleViewModel
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import com.example.cappucaresuministrosmedicos.viewModel.estadoStock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +51,7 @@ fun ProductoDetalleScreen(
     onEditar: () -> Unit,
     onEliminado: () -> Unit,
     onRegistrarMovimiento: (TipoMovimiento) -> Unit,
+    esEncargado: Boolean,
     viewModel: ProductoDetalleViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -67,7 +71,8 @@ fun ProductoDetalleScreen(
                     }
                 },
                 actions = {
-                    if (estado.producto != null) {
+                    // Solo el encargado puede editar o eliminar
+                    if (estado.producto != null && esEncargado) {
                         IconButton(onClick = onEditar) {
                             Icon(Icons.Default.Edit, contentDescription = "Editar")
                         }
@@ -126,12 +131,18 @@ fun ProductoDetalleScreen(
                             MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    if (producto.stockDisponible <= producto.stockMinimo) {
-                        EtiquetaEstado(
-                            "Stock bajo",
+                    when (producto.estadoStock()) {
+                        EstadoStock.AGOTADO -> EtiquetaEstado(
+                            "Agotado",
                             MaterialTheme.colorScheme.errorContainer,
                             MaterialTheme.colorScheme.onErrorContainer
                         )
+                        EstadoStock.BAJO_MINIMO -> EtiquetaEstado(
+                            "Bajo mínimo",
+                            MaterialTheme.colorScheme.tertiaryContainer,
+                            MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        EstadoStock.DISPONIBLE -> Unit
                     }
                 }
 
@@ -162,6 +173,8 @@ fun ProductoDetalleScreen(
                         )
                     }
                 }
+
+                // Ambos perfiles pueden registrar movimientos
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -177,6 +190,9 @@ fun ProductoDetalleScreen(
                         modifier = Modifier.weight(1f)
                     ) { Text("Salida / venta") }
                 }
+
+                HistorialProducto()
+
                 if (estado.errorGeneral != null) {
                     Text(
                         text = estado.errorGeneral.orEmpty(),

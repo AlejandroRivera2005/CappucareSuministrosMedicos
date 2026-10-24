@@ -20,6 +20,7 @@ import androidx.navigation.navArgument
 import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
 import com.example.cappucaresuministrosmedicos.view.screens.AlertasScreen
 import com.example.cappucaresuministrosmedicos.view.screens.EscanerScreen
+import com.example.cappucaresuministrosmedicos.view.screens.HistorialScreen
 import com.example.cappucaresuministrosmedicos.view.screens.HomeScreen
 import com.example.cappucaresuministrosmedicos.view.screens.LoginScreen
 import com.example.cappucaresuministrosmedicos.view.screens.MovimientoScreen
@@ -27,7 +28,10 @@ import com.example.cappucaresuministrosmedicos.view.screens.ProductoDetalleScree
 import com.example.cappucaresuministrosmedicos.view.screens.ProductoFormScreen
 import com.example.cappucaresuministrosmedicos.view.screens.ProductoListaScreen
 import com.example.cappucaresuministrosmedicos.view.screens.RegistroScreen
+import com.example.cappucaresuministrosmedicos.view.screens.UsuariosScreen
 import com.example.cappucaresuministrosmedicos.viewModel.AlertasViewModel
+import com.example.cappucaresuministrosmedicos.viewModel.HomeViewModel
+import com.example.cappucaresuministrosmedicos.viewModel.SesionViewModel
 
 object Rutas {
     const val login = "login"
@@ -35,6 +39,8 @@ object Rutas {
     const val home = "home"
     const val escaner = "escaner"
     const val alertas = "alertas"
+    const val movimientos = "movimientos"
+    const val usuarios = "usuarios"
     const val productos = "productos"
     const val producto_nuevo = "productos/nuevo"
     const val producto_detalle = "producto/{productoId}"
@@ -60,6 +66,10 @@ fun AppNavHost() {
     // Solo para el contador de la pestaña Alertas
     val alertasViewModel: AlertasViewModel = hiltViewModel()
     val alertas by alertasViewModel.uiState.collectAsState()
+
+    // Perfil de la sesión: define qué acciones se muestran
+    val sesionViewModel: SesionViewModel = hiltViewModel()
+    val esEncargado by sesionViewModel.esEncargado.collectAsState()
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -108,11 +118,32 @@ fun AppNavHost() {
             }
 
             composable(Rutas.home) {
+                val homeViewModel: HomeViewModel = hiltViewModel()
+                val estado by homeViewModel.uiState.collectAsState()
+
                 HomeScreen(
+                    nombre = estado.nombre,
+                    esEncargado = estado.esEncargado,
+                    pendientes = estado.pendientes,
                     onIrAProductos = { navController.navigate(Rutas.productos) },
-                    onIrAMovimientos = { /* TODO: navegar a movimientos */ },
-                    onIrAEscaner = { navController.navigate(Rutas.escaner) }
+                    onIrAMovimientos = { navController.navigate(Rutas.movimientos) },
+                    onIrAEscaner = { navController.navigate(Rutas.escaner) },
+                    onIrAUsuarios = { navController.navigate(Rutas.usuarios) },
+                    onCerrarSesion = {
+                        homeViewModel.cerrarSesion()
+                        navController.navigate(Rutas.login) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
                 )
+            }
+
+            composable(Rutas.usuarios) {
+                UsuariosScreen(onVolver = { navController.popBackStack() })
+            }
+
+            composable(Rutas.movimientos) {
+                HistorialScreen(onVolver = { navController.popBackStack() })
             }
 
             composable(Rutas.escaner) {
@@ -129,7 +160,8 @@ fun AppNavHost() {
                 ProductoListaScreen(
                     onVolver = { navController.popBackStack() },
                     onNuevo = { navController.navigate(Rutas.producto_nuevo) },
-                    onVerDetalle = { id -> navController.navigate(Rutas.detalle(id)) }
+                    onVerDetalle = { id -> navController.navigate(Rutas.detalle(id)) },
+                    puedeCrear = esEncargado
                 )
             }
 
@@ -148,7 +180,8 @@ fun AppNavHost() {
                     onEliminado = { navController.popBackStack() },
                     onRegistrarMovimiento = { tipo ->
                         navController.navigate(Rutas.movimiento(id, tipo))
-                    }
+                    },
+                    esEncargado = esEncargado
                 )
             }
 
