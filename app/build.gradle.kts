@@ -9,14 +9,14 @@ plugins {
 android {
     namespace = "com.example.cappucaresuministrosmedicos"
     compileSdk {
-        version = release(33)
+        version = release(37)
     }
 
 
     defaultConfig {
         applicationId = "com.example.cappucaresuministrosmedicos"
         minSdk = 30
-        targetSdk = 33
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
