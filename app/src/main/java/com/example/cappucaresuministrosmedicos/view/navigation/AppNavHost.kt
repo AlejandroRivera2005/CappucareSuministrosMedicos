@@ -6,11 +6,15 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,6 +32,7 @@ import com.example.cappucaresuministrosmedicos.view.screens.ProductoFormScreen
 import com.example.cappucaresuministrosmedicos.view.screens.ProductoListaScreen
 import com.example.cappucaresuministrosmedicos.view.screens.RegistroScreen
 import com.example.cappucaresuministrosmedicos.viewModel.AlertasViewModel
+import com.example.cappucaresuministrosmedicos.viewModel.SesionViewModel
 
 object Rutas {
     const val login = "login"
@@ -46,8 +51,19 @@ object Rutas {
     fun movimiento(id: Long, tipo: TipoMovimiento) = "producto/$id/movimiento/${tipo.name}"
 }
 
-// Pantallas donde se muestra la barra inferior
 private val rutasConBarra = setOf(Rutas.home, Rutas.productos, Rutas.escaner, Rutas.alertas)
+
+private fun NavController.irA(ruta: String, opciones: NavOptionsBuilder.() -> Unit = {}) {
+    if (currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+        navigate(ruta, opciones)
+    }
+}
+
+private fun NavController.volver() {
+    if (currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+        popBackStack()
+    }
+}
 
 @Composable
 fun AppNavHost() {
@@ -57,9 +73,28 @@ fun AppNavHost() {
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
 
-    // Solo para el contador de la pestaña Alertas
+    val sesionViewModel: SesionViewModel = hiltViewModel()
+    LaunchedEffect(rutaActual) {
+        val esPublica = rutaActual == null ||
+                rutaActual == Rutas.login ||
+                rutaActual == Rutas.registro
+        if (!esPublica && !sesionViewModel.haySesion) {
+            navController.navigate(Rutas.login) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+
     val alertasViewModel: AlertasViewModel = hiltViewModel()
     val alertas by alertasViewModel.uiState.collectAsState()
+
+    val irATab: (String) -> Unit = { ruta ->
+        navController.navigate(ruta) {
+            popUpTo(Rutas.home) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -68,13 +103,7 @@ fun AppNavHost() {
                 BarraNavegacion(
                     rutaActual = rutaActual,
                     alertas = alertas.productos.size,
-                    onNavegar = { ruta ->
-                        navController.navigate(ruta) {
-                            popUpTo(Rutas.home) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    onNavegar = irATab
                 )
             }
         }
@@ -96,46 +125,52 @@ fun AppNavHost() {
                             popUpTo(Rutas.login) { inclusive = true }
                         }
                     },
-                    onIrARegistro = { navController.navigate(Rutas.registro) }
+                    onIrARegistro = { navController.irA(Rutas.registro) }
                 )
             }
 
             composable(Rutas.registro) {
                 RegistroScreen(
                     onRegistroExitoso = { navController.popBackStack() },
-                    onVolver = { navController.popBackStack() }
+                    onVolver = { navController.volver() }
                 )
             }
 
             composable(Rutas.home) {
                 HomeScreen(
-                    onIrAProductos = { navController.navigate(Rutas.productos) },
-                    onIrAMovimientos = { /* TODO: navegar a movimientos */ },
-                    onIrAEscaner = { navController.navigate(Rutas.escaner) }
+                    onIrAProductos = { irATab(Rutas.productos) },
+                    onIrAEscaner = { irATab(Rutas.escaner) },
+                    onCerrarSesion = {
+                        sesionViewModel.cerrar()
+                        navController.navigate(Rutas.login) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
                 )
             }
 
             composable(Rutas.escaner) {
-                EscanerScreen(onVolver = { navController.popBackStack() })
+                EscanerScreen(onVolver = { navController.volver() })
             }
 
             composable(Rutas.alertas) {
                 AlertasScreen(
-                    onVerDetalle = { id -> navController.navigate(Rutas.detalle(id)) }
+                    onVerDetalle = { id -> navController.irA(Rutas.detalle(id)) },
+                    viewModel = alertasViewModel
                 )
             }
 
             composable(Rutas.productos) {
                 ProductoListaScreen(
-                    onVolver = { navController.popBackStack() },
-                    onNuevo = { navController.navigate(Rutas.producto_nuevo) },
-                    onVerDetalle = { id -> navController.navigate(Rutas.detalle(id)) }
+                    onVolver = { navController.volver() },
+                    onNuevo = { navController.irA(Rutas.producto_nuevo) },
+                    onVerDetalle = { id -> navController.irA(Rutas.detalle(id)) }
                 )
             }
 
             composable(Rutas.producto_nuevo) {
                 ProductoFormScreen(
-                    onVolver = { navController.popBackStack() },
+                    onVolver = { navController.volver() },
                     onGuardado = { navController.popBackStack() }
                 )
             }
@@ -143,18 +178,18 @@ fun AppNavHost() {
             composable(Rutas.producto_detalle, arguments = argProducto) { entrada ->
                 val id = entrada.arguments?.getLong("productoId") ?: return@composable
                 ProductoDetalleScreen(
-                    onVolver = { navController.popBackStack() },
-                    onEditar = { navController.navigate(Rutas.editar(id)) },
+                    onVolver = { navController.volver() },
+                    onEditar = { navController.irA(Rutas.editar(id)) },
                     onEliminado = { navController.popBackStack() },
                     onRegistrarMovimiento = { tipo ->
-                        navController.navigate(Rutas.movimiento(id, tipo))
+                        navController.irA(Rutas.movimiento(id, tipo))
                     }
                 )
             }
 
             composable(Rutas.producto_editar, arguments = argProducto) {
                 ProductoFormScreen(
-                    onVolver = { navController.popBackStack() },
+                    onVolver = { navController.volver() },
                     onGuardado = { navController.popBackStack() }
                 )
             }
@@ -164,7 +199,7 @@ fun AppNavHost() {
                 arguments = argProducto + navArgument("tipo") { type = NavType.StringType }
             ) {
                 MovimientoScreen(
-                    onVolver = { navController.popBackStack() },
+                    onVolver = { navController.volver() },
                     onGuardado = { navController.popBackStack() }
                 )
             }

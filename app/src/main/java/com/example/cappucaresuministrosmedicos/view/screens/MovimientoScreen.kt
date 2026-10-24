@@ -1,5 +1,10 @@
 package com.example.cappucaresuministrosmedicos.view.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,18 +34,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cappucaresuministrosmedicos.model.local.entity.MotivoMovimiento
 import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
 import com.example.cappucaresuministrosmedicos.viewModel.MovimientoViewModel
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 
 @Composable
 fun MovimientoScreen(
@@ -52,10 +53,11 @@ fun MovimientoScreen(
     LaunchedEffect(estado.guardado) {
         if (estado.guardado) onGuardado()
     }
+
     val context = LocalContext.current
     val lanzadorPermiso = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* si lo rechaza, simplemente no recibirá avisos */ }
+    ) { }
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -70,6 +72,7 @@ fun MovimientoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -86,7 +89,6 @@ fun MovimientoScreen(
             return@Column
         }
 
-
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp)) {
                 Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
@@ -98,7 +100,6 @@ fun MovimientoScreen(
             }
         }
 
-
         Text("Tipo de movimiento", style = MaterialTheme.typography.labelLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TipoMovimiento.entries.forEach { tipo ->
@@ -109,7 +110,6 @@ fun MovimientoScreen(
                 )
             }
         }
-
 
         Text("Cantidad", style = MaterialTheme.typography.labelLarge)
         Row(
@@ -133,7 +133,6 @@ fun MovimientoScreen(
             )
         }
 
-
         Text("Motivo", style = MaterialTheme.typography.labelLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             estado.motivos.forEach { motivo ->
@@ -145,14 +144,12 @@ fun MovimientoScreen(
             }
         }
 
-
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("Fecha: ${estado.fecha}", style = MaterialTheme.typography.bodyMedium)
                 Text("Responsable: ${estado.responsable}", style = MaterialTheme.typography.bodyMedium)
             }
         }
-
 
         val resultante = estado.stockResultante
         if (resultante != null) {

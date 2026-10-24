@@ -2,7 +2,6 @@ package com.example.cappucaresuministrosmedicos.view.screens
 
 import android.Manifest
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -52,12 +51,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EscanerScreen(onVolver: () -> Unit) {
     val context = LocalContext.current
-    val lifecycleOwner = remember(context) { context.buscarLifecycleOwner() }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var tienePermiso by remember { mutableStateOf(context.tienePermisoCamara()) }
 
@@ -65,20 +65,18 @@ fun EscanerScreen(onVolver: () -> Unit) {
         ActivityResultContracts.RequestPermission()
     ) { concedido -> tienePermiso = concedido }
 
-    // Al entrar, si no hay permiso, se pide
     LaunchedEffect(Unit) {
         if (!tienePermiso) lanzador.launch(Manifest.permission.CAMERA)
     }
 
-    // Si el usuario lo activa desde Ajustes y vuelve, se revisa de nuevo
     DisposableEffect(lifecycleOwner) {
         val observador = LifecycleEventObserver { _, evento ->
             if (evento == Lifecycle.Event.ON_RESUME) {
                 tienePermiso = context.tienePermisoCamara()
             }
         }
-        lifecycleOwner?.lifecycle?.addObserver(observador)
-        onDispose { lifecycleOwner?.lifecycle?.removeObserver(observador) }
+        lifecycleOwner.lifecycle.addObserver(observador)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observador) }
     }
 
     Scaffold(
@@ -107,7 +105,7 @@ fun EscanerScreen(onVolver: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (tienePermiso && lifecycleOwner != null) {
+            if (tienePermiso) {
                 val forma = RoundedCornerShape(20.dp)
                 Box(
                     modifier = Modifier
@@ -149,7 +147,7 @@ private fun VistaCamara(lifecycleOwner: LifecycleOwner) {
         modifier = Modifier.fillMaxSize(),
         factory = { ctx ->
             val vista = PreviewView(ctx)
-            val futuro = ProcessCameraViewProvider.obtener(ctx)
+            val futuro = ProcessCameraProvider.getInstance(ctx)
             futuro.addListener({
                 val proveedor = futuro.get()
                 val preview = Preview.Builder().build().also {
@@ -163,16 +161,11 @@ private fun VistaCamara(lifecycleOwner: LifecycleOwner) {
                         preview
                     )
                 } catch (e: Exception) {
-                    // sin cámara disponible: la vista queda vacía
                 }
             }, ContextCompat.getMainExecutor(ctx))
             vista
         }
     )
-}
-
-private object ProcessCameraViewProvider {
-    fun obtener(context: Context) = ProcessCameraProvider.getInstance(context)
 }
 
 private fun Context.tienePermisoCamara() =
@@ -186,14 +179,4 @@ private fun Context.abrirAjustesApp() {
             Uri.fromParts("package", packageName, null)
         )
     )
-}
-
-// El contexto de Compose suele estar envuelto; se busca la Activity que sea LifecycleOwner
-private fun Context.buscarLifecycleOwner(): LifecycleOwner? {
-    var actual: Context? = this
-    while (actual is ContextWrapper) {
-        if (actual is LifecycleOwner) return actual
-        actual = actual.baseContext
-    }
-    return null
 }
