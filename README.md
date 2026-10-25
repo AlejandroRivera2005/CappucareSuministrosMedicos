@@ -14,8 +14,10 @@ El patrón arquitectónico de esta aplicación es Model - View - ViewModel (MVVM
 ## Arquitectura de software
 Como se mencionó anteriormente, nuestra aplicación sigue el patrón de diseño MVVM, dentro de los directorios del proyecto, se ve reflejado de la siguiente forma: 
 
-| Capa                             | Carpeta                | Rol                                                                              |
-| Datos                            | model                  | Base de datos local, DAOs, repositorios y datos provisorios para la demostración |
-| Estado y lógica de las pantallas | viewmodel              | Estado de la pantalla, reglas de negocio y validaciones                          |
-| Interfaces para el usuario       | view                   | Pantallas con composables, con navegación y componentes reutilizables            |
-| Inyección Hilt                   | di                     | módulo Hilt que construye los DAOs y la base de datos                            |
+
+| Capa | Carpeta | Rol |
+| :--- | :--- | :--- |
+| Datos | model | Base de datos local, DAOs, repositorios y datos provisorios para la demostración |
+| Estado y lógica de las pantallas | viewmodel | Estado de la pantalla, reglas de negocio y validaciones |
+| Interfaces para el usuario | view | Pantallas con composables, con navegación y componentes reutilizables |
+| Inyección Hilt | di | módulo Hilt que construye los DAOs y la base de datos |
