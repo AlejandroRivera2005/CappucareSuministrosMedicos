@@ -52,7 +52,6 @@ object Rutas {
     fun movimiento(id: Long, tipo: TipoMovimiento) = "producto/$id/movimiento/${tipo.name}"
 }
 
-// Pantallas donde se muestra la barra inferior
 private val rutasConBarra = setOf(Rutas.home, Rutas.productos, Rutas.escaner, Rutas.alertas)
 
 @Composable
@@ -63,13 +62,23 @@ fun AppNavHost() {
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
 
-    // Solo para el contador de la pestaña Alertas
     val alertasViewModel: AlertasViewModel = hiltViewModel()
     val alertas by alertasViewModel.uiState.collectAsState()
 
-    // Perfil de la sesión: define qué acciones se muestran
     val sesionViewModel: SesionViewModel = hiltViewModel()
     val esEncargado by sesionViewModel.esEncargado.collectAsState()
+
+    val irATab: (String) -> Unit = { ruta ->
+        if (ruta == Rutas.home) {
+            navController.popBackStack(Rutas.home, inclusive = false)
+        } else {
+            navController.navigate(ruta) {
+                popUpTo(Rutas.home) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -78,13 +87,7 @@ fun AppNavHost() {
                 BarraNavegacion(
                     rutaActual = rutaActual,
                     alertas = alertas.productos.size,
-                    onNavegar = { ruta ->
-                        navController.navigate(ruta) {
-                            popUpTo(Rutas.home) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    onNavegar = irATab
                 )
             }
         }
@@ -125,9 +128,9 @@ fun AppNavHost() {
                     nombre = estado.nombre,
                     esEncargado = estado.esEncargado,
                     pendientes = estado.pendientes,
-                    onIrAProductos = { navController.navigate(Rutas.productos) },
+                    onIrAProductos = { irATab(Rutas.productos) },
                     onIrAMovimientos = { navController.navigate(Rutas.movimientos) },
-                    onIrAEscaner = { navController.navigate(Rutas.escaner) },
+                    onIrAEscaner = { irATab(Rutas.escaner) },
                     onIrAUsuarios = { navController.navigate(Rutas.usuarios) },
                     onCerrarSesion = {
                         homeViewModel.cerrarSesion()
@@ -147,7 +150,7 @@ fun AppNavHost() {
             }
 
             composable(Rutas.escaner) {
-                EscanerScreen(onVolver = { navController.popBackStack() })
+                EscanerScreen(onVolver = { irATab(Rutas.home) })
             }
 
             composable(Rutas.alertas) {
@@ -158,7 +161,7 @@ fun AppNavHost() {
 
             composable(Rutas.productos) {
                 ProductoListaScreen(
-                    onVolver = { navController.popBackStack() },
+                    onVolver = { irATab(Rutas.home) },
                     onNuevo = { navController.navigate(Rutas.producto_nuevo) },
                     onVerDetalle = { id -> navController.navigate(Rutas.detalle(id)) },
                     puedeCrear = esEncargado
