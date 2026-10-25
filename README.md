@@ -22,31 +22,14 @@ Como se mencionó anteriormente, nuestra aplicación sigue el patrón de diseño
 | Interfaces para el usuario | view | Pantallas con composables, navegación y componentes reutilizables |
 | Inyección Hilt | di | módulo Hilt que construye los DAOs y la base de datos |
 
+El flujo de la aplicación siempre es este, la pantalla observa un StateFlow de su ViewModel, y al realizar cambios, View (la pantalla involucrada) llama a ViewModel, ViewModel aplica la lógica de negocio, y en base a esta, llama a los repositorios de Model, y finalmente la base de datos de Room genera los cambios, siguiendo este mismo flujo de manera inversa. Este flujo de funcionamiento garantiza que las responsabilidades dentro de la aplicación estén repartidas, siguiendo el principio de modularidad.
 
-El orden en el que está realizado el código fuente para seguir este patrón es este:
+## Proceso de arranque de la aplicación
+Cada vez que se ejecuta la aplicación, Android crea CappucareApp, Hilt configura el contenedor de dependencias y MainActivity renderiza AppNavHost, la cual tiene como instrucción hacer que la pantalla de entrada sea el inicio de sesión (login).
 
-´´´text
-├── CappucareApp.kt            # Application: arranca Hilt y siembra productos demo
-├── MainActivity.kt            # Única Activity: muestra AppNavHost
-├── di/
-│   └── DatabaseModule.kt      # Provee AppDatabase y los 3 DAOs
-├── model/
-│   ├── SembradorDatos.kt      # Productos y movimientos de ejemplo
-│   ├── SesionUsuario.kt        # Usuario y perfil de la sesión actual (en memoria)
-│   ├── NotificadorStock.kt    # Notificación de stock bajo
-│   ├── ProductoRepository.kt
-│   ├── MovimientoRepository.kt
-│   ├── UsuarioRepository.kt
-│   └── local/
-│       ├── AppDataBase.kt     # Base Room (clase AppDatabase)
-│       ├── dao/               # ProductoDao, MovimientoDao, UsuarioDao
-│       └── entity/            # ProductoEntity, MovimientoEntity, UsuarioEntity
-├── viewModel/                 # Login, Registro, Home, Sesion, Alertas, Historial,
-│                              # HistorialProducto, Movimiento, Usuarios, ProductoLista,
-│                              # ProductoDetalle, ProductoForm, Validadores, helpers
-└── view/
-    ├── navigation/            # AppNavHost, BarraNavegacion
-    ├── screens/               # 10 pantallas (Login ... Usuarios)
-    ├── components/            # CampoFormulario, EtiquetaEstado, FilaMovimiento, HistorialProducto
-    └── theme/                 # Color, Type, Theme
-´´´    
+Dentro de CappucareApp.kt, Hilt también inyecta los datos de demostración (SembradorDatos.kt). Estos datos tienen la función de ser meramente demostrativos, con el fin de mostrar las funcionalidades de nuestra aplicación.
+
+También se ha cargado un usuario de ejemplo, para poder acceder a la aplicación por primera vez. Pero este se encuentra dentro de UsuarioRepository, en la función sembrarEncargadoDemo(). Estos son los datos para concretar el inicio de sesión:
+
+- Correo Electrónico: encargado@cappucare.cl
+- Contraseña: Cappucare123
