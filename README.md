@@ -25,26 +25,27 @@ Como se mencionó anteriormente, nuestra aplicación sigue el patrón de diseño
 
 El orden en el que está realizado el código fuente para seguir este patrón es este:
 
-├── CappucareApp.kt            Application: arranca Hilt y siembra productos demo
-├── MainActivity.kt            Única Activity: muestra AppNavHost
+.
+├── CappucareApp.kt            # Application: arranca Hilt y siembra productos demo
+├── MainActivity.kt            # Única Activity: muestra AppNavHost
 ├── di/
-│   └── DatabaseModule.kt      Provee AppDatabase y los 3 DAOs
+│   └── DatabaseModule.kt      # Provee AppDatabase y los 3 DAOs
 ├── model/
-│   ├── SembradorDatos.kt      Productos y movimientos de ejemplo
-│   ├── SesionUsuario.kt       Usuario y perfil de la sesión actual (en memoria)
-│   ├── NotificadorStock.kt    Notificación de stock bajo
+│   ├── SembradorDatos.kt      # Productos y movimientos de ejemplo
+│   ├── SesionUsuario.kt        # Usuario y perfil de la sesión actual (en memoria)
+│   ├── NotificadorStock.kt    # Notificación de stock bajo
 │   ├── ProductoRepository.kt
 │   ├── MovimientoRepository.kt
 │   ├── UsuarioRepository.kt
 │   └── local/
-│       ├── AppDataBase.kt     Base Room (clase AppDatabase)
-│       ├── dao/               ProductoDao, MovimientoDao, UsuarioDao
-│       └── entity/            ProductoEntity, MovimientoEntity, UsuarioEntity
-├── viewModel/                 Login, Registro, Home, Sesion, Alertas, Historial,
-│                              HistorialProducto, Movimiento, Usuarios, ProductoLista,
-│                              ProductoDetalle, ProductoForm, Validadores, helpers
+│       ├── AppDataBase.kt     # Base Room (clase AppDatabase)
+│       ├── dao/               # ProductoDao, MovimientoDao, UsuarioDao
+│       └── entity/            # ProductoEntity, MovimientoEntity, UsuarioEntity
+├── viewModel/                 # Login, Registro, Home, Sesion, Alertas, Historial,
+│                              # HistorialProducto, Movimiento, Usuarios, ProductoLista,
+│                              # ProductoDetalle, ProductoForm, Validadores, helpers
 └── view/
-    ├── navigation/            AppNavHost, BarraNavegacion
-    ├── screens/               10 pantallas (Login ... Usuarios)
-    ├── components/            CampoFormulario, EtiquetaEstado, FilaMovimiento, HistorialProducto
-    └── theme/                 Color, Type, Theme
+    ├── navigation/            # AppNavHost, BarraNavegacion
+    ├── screens/               # 10 pantallas (Login ... Usuarios)
+    ├── components/            # CampoFormulario, EtiquetaEstado, FilaMovimiento, HistorialProducto
+    └── theme/                 # Color, Type, Theme
