@@ -34,7 +34,7 @@ También se ha cargado un usuario de ejemplo, para poder acceder a la aplicació
 - Correo Electrónico: encargado@cappucare.cl
 - Contraseña: Cappucare123
 
-## Registro de usuarios e inicio de sesión
+## Inicio de sesión para el testeo de la aplicación completa
 Para registrar un usuario, se debe utilizar la pantalla designada para registrarse. Sin embargo, al tratarse de una aplicación utilizada al interior de una empresa, y únicamente dentro del nicho de esta empresa, todos los usuarios registrados deben ser autorizados por un Encargado antes de poder completar exitosamente el inicio de sesión. Puede utilizarse al usuario de ejemplo para autorizar cuentas creadas durante el uso de la aplicación, y así poder evaluar este apartado y el resto de funcionalidades posteriores a esta.
 
 
