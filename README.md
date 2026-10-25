@@ -25,6 +25,7 @@ Como se mencionó anteriormente, nuestra aplicación sigue el patrón de diseño
 
 El orden en el que está realizado el código fuente para seguir este patrón es este:
 
+´´´
 .
 ├── CappucareApp.kt            # Application: arranca Hilt y siembra productos demo
 ├── MainActivity.kt            # Única Activity: muestra AppNavHost
@@ -49,3 +50,4 @@ El orden en el que está realizado el código fuente para seguir este patrón es
     ├── screens/               # 10 pantallas (Login ... Usuarios)
     ├── components/            # CampoFormulario, EtiquetaEstado, FilaMovimiento, HistorialProducto
     └── theme/                 # Color, Type, Theme
+´´´    
