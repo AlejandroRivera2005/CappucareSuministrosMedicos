@@ -9,7 +9,83 @@ Esta aplicación para android fue realizada como encargo para la empresa de Capp
 Nuestra aplicación fue hecha en Android Studio, utiliza componentes de Jetpack Compose y Material3, inyección de dependencias de Hilt y manejo de datos y persistencia local a través de Room.
 
 El patrón arquitectónico de esta aplicación es Model - View - ViewModel (MVVM), dado a que es el estándar para aplicaciones de android.
+## Estructura del Proyecto
 
+```text
+.
+|   CappucareApp.kt
+|   MainActivity.kt
+|
++---di
+|       DatabaseModule.kt
+|
++---model
+|   |   MovimientoRepository.kt
+|   |   NotificadorStock.kt
+|   |   ProductoRepository.kt
+|   |   SembradorDatos.kt
+|   |   SesionUsuario.kt
+|   |   UsuarioRepository.kt
+|   |
+|   \---local
+|       |   AppDataBase.kt
+|       |
+|       +---dao
+|       |       MovimientoDao.kt
+|       |       ProductoDao.kt
+|       |       UsuarioDao.kt
+|       |
+|       \---entity
+|               MovimientoEntity.kt
+|               ProductoEntity.kt
+|               UsuarioEntity.kt
+|
++---view
+|   +---components
+|   |       CampoFormulario.kt
+|   |       EtiquetaEstado.kt
+|   |       FilaMovimiento.kt
+|   |       HistorialProducto.kt
+|   |
+|   +---navigation
+|   |       AppNavHost.kt
+|   |       BarraNavegacion.kt
+|   |
+|   +---screens
+|   |       AlertasScreen.kt
+|   |       EscanerScreen.kt
+|   |       HistorialScreen.kt
+|   |       HomeScreen.kt
+|   |       LoginScreen.kt
+|   |       MovimientoScreen.kt
+|   |       ProductoDetalleScreen.kt
+|   |       ProductoFormScreen.kt
+|   |       ProductoListaScreen.kt
+|   |       RegistroScreen.kt
+|   |       UsuariosScreen.kt
+|   |
+|   \---theme
+|           Color.kt
+|           Theme.kt
+|           Type.kt
+|
+\---viewModel
+        AlertasViewModel.kt
+        EstadoStockViewModel.kt
+        HistorialProductoViewModel.kt
+        HistorialViewModel.kt
+        HomeViewModel.kt
+        ItemHistorial.kt
+        LoginViewModel.kt
+        MovimientoViewModel.kt
+        ProductoDetalleViewModel.kt
+        ProductoFormViewModel.kt
+        ProductoListaViewModel.kt
+        RegistroViewModel.kt
+        SesionViewModel.kt
+        UsuariosViewModel.kt
+        Validadores.kt
+```
 
 ## Arquitectura de software
 Como se mencionó anteriormente, nuestra aplicación sigue el patrón de diseño MVVM, dentro de los directorios del proyecto, se ve reflejado de la siguiente forma: 
