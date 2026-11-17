@@ -31,6 +31,7 @@ import com.example.cappucaresuministrosmedicos.view.screens.RegistroScreen
 import com.example.cappucaresuministrosmedicos.view.screens.UsuariosScreen
 import com.example.cappucaresuministrosmedicos.viewModel.AlertasViewModel
 import com.example.cappucaresuministrosmedicos.viewModel.HomeViewModel
+import com.example.cappucaresuministrosmedicos.viewModel.PokemonAleatorioViewModel
 import com.example.cappucaresuministrosmedicos.viewModel.SesionViewModel
 
 object Rutas {
@@ -123,6 +124,8 @@ fun AppNavHost() {
             composable(Rutas.home) {
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val estado by homeViewModel.uiState.collectAsState()
+                val pokemonViewModel: PokemonAleatorioViewModel = hiltViewModel()
+                val pokemon by pokemonViewModel.uiState.collectAsState()
 
                 HomeScreen(
                     nombre = estado.nombre,
@@ -137,7 +140,10 @@ fun AppNavHost() {
                         navController.navigate(Rutas.login) {
                             popUpTo(navController.graph.id) { inclusive = true }
                         }
-                    }
+                    },
+                    pokemon = pokemon,
+                    onLlamarPokemon = pokemonViewModel::llamar,
+                    onCerrarPokemon = pokemonViewModel::cerrar
                 )
             }
 

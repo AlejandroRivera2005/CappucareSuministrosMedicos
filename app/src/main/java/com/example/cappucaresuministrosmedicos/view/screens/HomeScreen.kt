@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.cappucaresuministrosmedicos.view.components.PokemonAleatorioDialog
 import com.example.cappucaresuministrosmedicos.view.theme.CappucareSuministrosMedicosTheme
+import com.example.cappucaresuministrosmedicos.viewModel.PokemonAleatorioUiState
 
 @Composable
 fun HomeScreen(
@@ -33,7 +35,10 @@ fun HomeScreen(
     onIrAEscaner: () -> Unit,
     onIrAUsuarios: () -> Unit,
     onCerrarSesion: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    pokemon: PokemonAleatorioUiState = PokemonAleatorioUiState(),
+    onLlamarPokemon: () -> Unit = {},
+    onCerrarPokemon: () -> Unit = {}
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -97,7 +102,6 @@ fun HomeScreen(
                 Text("Escanear código", style = MaterialTheme.typography.titleMedium)
             }
 
-            // Solo el encargado aprueba cuentas
             if (esEncargado) {
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedButton(
@@ -118,7 +122,23 @@ fun HomeScreen(
             TextButton(onClick = onCerrarSesion) {
                 Text("Cerrar sesión")
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = onLlamarPokemon
+            ) {
+                Text("?")
+            }
         }
+    }
+
+    if (pokemon.visible) {
+        PokemonAleatorioDialog(
+            estado = pokemon,
+            onOtro = onLlamarPokemon,
+            onCerrar = onCerrarPokemon
+        )
     }
 }
 
