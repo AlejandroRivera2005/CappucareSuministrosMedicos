@@ -2,6 +2,8 @@ package com.example.cappucaresuministrosmedicos.model
 
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
 import com.example.cappucaresuministrosmedicos.model.remote.InventarioApi
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.mapLatest
@@ -14,6 +16,9 @@ class ProductoRepository @Inject constructor(private val api: InventarioApi) {
 
     fun observarTodos(): Flow<List<ProductoEntity>> = revision.mapLatest {
         api.listarProductos().sortedBy { it.id }
+    }.catch { e ->
+        if (e is CancellationException) throw e
+        emit(emptyList())
     }
 
     fun observarPorId(id: Long): Flow<ProductoEntity?> = revision.mapLatest {
@@ -22,6 +27,9 @@ class ProductoRepository @Inject constructor(private val api: InventarioApi) {
         } catch (e: retrofit2.HttpException) {
             if (e.code() == 404) null else throw e
         }
+    }.catch { e ->
+        if (e is CancellationException) throw e
+        emit(null)
     }
 
     fun observarBajoMinimo(): Flow<List<ProductoEntity>> = observarTodos().mapLatest { lista ->
