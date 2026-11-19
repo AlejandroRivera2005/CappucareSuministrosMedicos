@@ -1,24 +1,24 @@
 package com.example.cappucaresuministrosmedicos.model
 
-import androidx.room.withTransaction
-import com.example.cappucaresuministrosmedicos.model.local.AppDatabase
-import com.example.cappucaresuministrosmedicos.model.local.dao.MovimientoDao
-import com.example.cappucaresuministrosmedicos.model.local.dao.ProductoDao
 import com.example.cappucaresuministrosmedicos.model.local.entity.MotivoMovimiento
 import com.example.cappucaresuministrosmedicos.model.local.entity.MovimientoEntity
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
 import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
+import com.example.cappucaresuministrosmedicos.model.remote.InventarioApi
+import com.example.cappucaresuministrosmedicos.model.remote.MovimientoDto
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.mapLatest
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MovimientoRepository @Inject constructor(
-    private val database: AppDatabase,
-    private val movimientoDao: MovimientoDao,
-    private val productoDao: ProductoDao
+    private val api: InventarioApi,
+    private val productos: ProductoRepository
 ) {
-
+    private val revision = MutableStateFlow(0L)
 
     suspend fun registrar(
         productoId: Long,
@@ -27,44 +27,41 @@ class MovimientoRepository @Inject constructor(
         motivo: MotivoMovimiento,
         responsable: String
     ): Result<ProductoEntity> = try {
-        val actualizado = database.withTransaction {
-            val producto = productoDao.obtenerPorId(productoId)
-                ?: throw IllegalStateException("El producto no existe")
-
-            val nuevoStock = when (tipo) {
-                TipoMovimiento.INGRESO -> producto.stockDisponible + cantidad
-                TipoMovimiento.SALIDA -> producto.stockDisponible - cantidad
-            }
-            if (nuevoStock < 0) {
-                throw IllegalStateException(
-                    "No hay stock suficiente (disponible: ${producto.stockDisponible})"
-                )
-            }
-
-            val productoNuevo = producto.copy(stockDisponible = nuevoStock)
-            productoDao.actualizar(productoNuevo)
-            movimientoDao.insertar(
-                MovimientoEntity(
-                    productoId = productoId,
-                    tipo = tipo,
-                    cantidad = cantidad,
-                    motivo = motivo,
-                    fecha = System.currentTimeMillis(),
-                    responsable = responsable
-                )
-            )
-            productoNuevo
-        }
+        require(cantidad > 0) { "La cantidad debe ser mayor que cero" }
+        api.registrarMovimiento(MovimientoDto(
+            productoId = productoId,
+            tipo = tipo.name,
+            cantidad = cantidad,
+            motivo = motivo.name,
+            responsable = responsable
+        ))
+        val actualizado = api.obtenerProducto(productoId)
+        revision.value += 1
+        productos.refrescar()
         Result.success(actualizado)
-    } catch (e: IllegalStateException) {
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
         Result.failure(e)
     }
 
     fun observarPorProducto(productoId: Long): Flow<List<MovimientoEntity>> =
-        movimientoDao.observarPorProducto(productoId)
+        revision.mapLatest { api.movimientosPorProducto(productoId).map { it.aEntidad() } }
 
     fun observarRecientes(limite: Int = 20): Flow<List<MovimientoEntity>> =
-        movimientoDao.observarRecientes(limite)
+        revision.mapLatest { api.listarMovimientos().map { it.aEntidad() }.take(limite) }
 
-    fun contarDesde(desde: Long): Flow<Int> = movimientoDao.contarDesde(desde)
+    fun contarDesde(desde: Long): Flow<Int> =
+        revision.mapLatest { api.listarMovimientos().count { it.fecha >= desde } }
+
+    private fun MovimientoDto.aEntidad() = MovimientoEntity(
+        id = id ?: 0L,
+        productoId = productoId,
+        tipo = TipoMovimiento.valueOf(tipo.uppercase()),
+        cantidad = cantidad,
+        motivo = MotivoMovimiento.entries.firstOrNull { it.name == motivo.uppercase() }
+            ?: MotivoMovimiento.AJUSTE,
+        responsable = responsable,
+        fecha = fecha
+    )
 }

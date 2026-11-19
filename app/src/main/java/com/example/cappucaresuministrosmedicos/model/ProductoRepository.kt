@@ -1,29 +1,54 @@
 package com.example.cappucaresuministrosmedicos.model
 
-
-
-import com.example.cappucaresuministrosmedicos.model.local.dao.ProductoDao
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
+import com.example.cappucaresuministrosmedicos.model.remote.InventarioApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.mapLatest
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ProductoRepository @Inject constructor(
-    private val productoDao: ProductoDao
-) {
-    fun observarTodos(): Flow<List<ProductoEntity>> = productoDao.observarTodos()
+class ProductoRepository @Inject constructor(private val api: InventarioApi) {
+    private val revision = MutableStateFlow(0L)
 
-    fun observarPorId(id: Long): Flow<ProductoEntity?> = productoDao.observarPorId(id)
+    fun observarTodos(): Flow<List<ProductoEntity>> = revision.mapLatest {
+        api.listarProductos().sortedBy { it.id }
+    }
 
-    suspend fun insertar(producto: ProductoEntity) = productoDao.insertar(producto)
+    fun observarPorId(id: Long): Flow<ProductoEntity?> = revision.mapLatest {
+        try {
+            api.obtenerProducto(id)
+        } catch (e: retrofit2.HttpException) {
+            if (e.code() == 404) null else throw e
+        }
+    }
 
-    suspend fun actualizar(producto: ProductoEntity) = productoDao.actualizar(producto)
+    fun observarBajoMinimo(): Flow<List<ProductoEntity>> = observarTodos().mapLatest { lista ->
+        lista.filter { it.activo && it.stockDisponible <= it.stockMinimo }
+            .sortedBy { it.stockDisponible }
+    }
 
-    suspend fun eliminar(producto: ProductoEntity) = productoDao.eliminar(producto)
+    suspend fun obtenerPorId(id: Long): ProductoEntity? = try {
+        api.obtenerProducto(id)
+    } catch (e: retrofit2.HttpException) {
+        if (e.code() == 404) null else throw e
+    }
 
-    suspend fun obtenerPorId(id: Long) = productoDao.obtenerPorId(id)
+    suspend fun insertar(producto: ProductoEntity) {
+        api.crearProducto(producto)
+        refrescar()
+    }
 
+    suspend fun actualizar(producto: ProductoEntity) {
+        api.actualizarProducto(producto.id, producto)
+        refrescar()
+    }
 
-    fun observarBajoMinimo() = productoDao.observarBajoMinimo()
+    suspend fun eliminar(producto: ProductoEntity) {
+        api.eliminarProducto(producto.id)
+        refrescar()
+    }
+
+    fun refrescar() { revision.value += 1 }
 }

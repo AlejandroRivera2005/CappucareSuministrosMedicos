@@ -1,95 +1,52 @@
 package com.example.cappucaresuministrosmedicos.model
 
-import androidx.room.Room
-import com.example.cappucaresuministrosmedicos.model.local.AppDatabase
 import com.example.cappucaresuministrosmedicos.model.local.entity.MotivoMovimiento
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
 import com.example.cappucaresuministrosmedicos.model.local.entity.TipoMovimiento
+import com.example.cappucaresuministrosmedicos.model.remote.InventarioApi
+import com.example.cappucaresuministrosmedicos.model.remote.MovimientoDto
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import org.robolectric.RuntimeEnvironment
+import kotlinx.coroutines.test.runTest
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
-class MovimientoRepositoryTest {
-    private lateinit var db: AppDatabase
-    private lateinit var repository: MovimientoRepository
+class MovimientoRepositoryTest : StringSpec({
+    val api = mockk<InventarioApi>()
+    val productos = mockk<ProductoRepository>(relaxed = true)
+    val repo = MovimientoRepository(api, productos)
+    val producto = ProductoEntity(1, "Guantes", "", "Protección", 15, "cajas", 3, "A1")
+    val mov = MovimientoDto(2L, 1L, "INGRESO", 5, "RECEPCION", "Encargado", 123L)
 
-    @Before fun setUp() {
-        db = Room.inMemoryDatabaseBuilder(
-            RuntimeEnvironment.getApplication(),
-            AppDatabase::class.java
-        ).allowMainThreadQueries().build()
-        repository = MovimientoRepository(db, db.movimientoDao(), db.productoDao())
+    "registrar llama POST y recupera stock del servidor" {
+        coEvery { api.registrarMovimiento(any()) } returns mov
+        coEvery { api.obtenerProducto(1L) } returns producto
+        runTest {
+            val result = repo.registrar(1, TipoMovimiento.INGRESO, 5, MotivoMovimiento.RECEPCION, "Encargado")
+            result.getOrThrow().stockDisponible shouldBe 15
+        }
+        coVerify(exactly = 1) { api.registrarMovimiento(match { it.productoId == 1L && it.cantidad == 5 }) }
     }
 
-    @After fun tearDown() {
-        db.close()
+    "cantidad no positiva no llama a la API" {
+        runTest { repo.registrar(1, TipoMovimiento.SALIDA, 0, MotivoMovimiento.VENTA, "Demo").isFailure shouldBe true }
     }
 
-    private fun producto(stock: Int = 10) = ProductoEntity(
-        id = 1, nombre = "Guantes", descripcion = "", categoria = "Protección",
-        stockDisponible = stock, unidadMedida = "cajas", stockMinimo = 3,
-        lugarAlmacenamiento = "A1"
-    )
-
-    @Test fun ingresoIncrementaStockYRegistraMovimiento() = runBlocking {
-        db.productoDao().insertar(producto())
-        val result = repository.registrar(
-            1, TipoMovimiento.INGRESO, 5, MotivoMovimiento.RECEPCION, "Encargado"
-        )
-        assertTrue(result.isSuccess)
-        assertEquals(15, result.getOrThrow().stockDisponible)
-        val history = repository.observarPorProducto(1).first()
-        assertEquals(1, history.size)
-        assertEquals(TipoMovimiento.INGRESO, history.single().tipo)
-        assertEquals(5, history.single().cantidad)
-        assertEquals("Encargado", history.single().responsable)
+    "historial por producto utiliza endpoint dedicado" {
+        coEvery { api.movimientosPorProducto(1L) } returns listOf(mov)
+        runTest { repo.observarPorProducto(1).first().single().cantidad shouldBe 5 }
     }
 
-    @Test fun salidaDescuentaStockYRegistraMovimiento() = runBlocking {
-        db.productoDao().insertar(producto(10))
-        val result = repository.registrar(
-            1, TipoMovimiento.SALIDA, 4, MotivoMovimiento.VENTA, "Operador"
-        )
-        assertTrue(result.isSuccess)
-        assertEquals(6, result.getOrThrow().stockDisponible)
-        assertEquals(1, repository.observarPorProducto(1).first().size)
+    "historial reciente usa GET movimientos" {
+        coEvery { api.listarMovimientos() } returns listOf(mov)
+        runTest { repo.observarRecientes(1).first().size shouldBe 1 }
     }
 
-    @Test fun salidaMayorAlStockFallaSinModificarDatos() = runBlocking {
-        db.productoDao().insertar(producto(3))
-        val result = repository.registrar(
-            1, TipoMovimiento.SALIDA, 4, MotivoMovimiento.MERMA, "Operador"
-        )
-        assertTrue(result.isFailure)
-        assertEquals("No hay stock suficiente (disponible: 3)", result.exceptionOrNull()?.message)
-        assertEquals(3, db.productoDao().obtenerPorId(1)?.stockDisponible)
-        assertTrue(repository.observarPorProducto(1).first().isEmpty())
+    "contar desde usa fechas remotas" {
+        coEvery { api.listarMovimientos() } returns listOf(mov)
+        runTest { repo.contarDesde(100L).first() shouldBe 1 }
     }
+})
 
-    @Test fun productoInexistenteDevuelveFallo() = runBlocking {
-        val result = repository.registrar(
-            999, TipoMovimiento.INGRESO, 1, MotivoMovimiento.AJUSTE, "Operador"
-        )
-        assertTrue(result.isFailure)
-        assertEquals("El producto no existe", result.exceptionOrNull()?.message)
-    }
-
-    @Test fun consultasDeleganAFlujosDelDao() = runBlocking {
-        db.productoDao().insertar(producto())
-        repository.registrar(1, TipoMovimiento.INGRESO, 2, MotivoMovimiento.RECEPCION, "A")
-        repository.registrar(1, TipoMovimiento.SALIDA, 1, MotivoMovimiento.VENTA, "B")
-        assertEquals(2, repository.observarRecientes().first().size)
-        assertEquals(2, repository.observarRecientes(2).first().size)
-        assertEquals(2, repository.contarDesde(0L).first())
-        assertEquals(0, repository.contarDesde(Long.MAX_VALUE).first())
-    }
-}

@@ -1,63 +1,50 @@
 package com.example.cappucaresuministrosmedicos.model
 
-import com.example.cappucaresuministrosmedicos.model.local.dao.ProductoDao
 import com.example.cappucaresuministrosmedicos.model.local.entity.ProductoEntity
+import com.example.cappucaresuministrosmedicos.model.remote.InventarioApi
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
 class ProductoRepositoryTest : StringSpec({
-    val dao = mockk<ProductoDao>()
-    val repository = ProductoRepository(dao)
-    val producto = ProductoEntity(
-        id = 7, nombre = "Guantes", descripcion = "Nitrilo", categoria = "Insumos",
-        stockDisponible = 12, unidadMedida = "cajas", stockMinimo = 3,
-        lugarAlmacenamiento = "Bodega A"
-    )
+    val api = mockk<InventarioApi>()
+    val repo = ProductoRepository(api)
+    val producto = ProductoEntity(7, "Guantes", "Nitrilo", "Insumos", 2, "cajas", 3, "Bodega")
 
-    "observarTodos delega el flujo del DAO" {
-        every { dao.observarTodos() } returns flowOf(listOf(producto))
-        repository.observarTodos().first() shouldBe listOf(producto)
+    "listar consulta Spring Boot" {
+        coEvery { api.listarProductos() } returns listOf(producto)
+        runTest { repo.observarTodos().first() shouldBe listOf(producto) }
     }
 
-    "observarPorId delega el identificador" {
-        every { dao.observarPorId(7L) } returns flowOf(producto)
-        repository.observarPorId(7L).first() shouldBe producto
+    "obtener por id consulta Spring Boot" {
+        coEvery { api.obtenerProducto(7L) } returns producto
+        runTest { repo.obtenerPorId(7L) shouldBe producto }
     }
 
-    "observarPorId propaga ausencia" {
-        every { dao.observarPorId(404L) } returns flowOf(null)
-        repository.observarPorId(404L).first() shouldBe null
+    "alertas filtra bajo minimo" {
+        coEvery { api.listarProductos() } returns listOf(producto)
+        runTest { repo.observarBajoMinimo().first() shouldBe listOf(producto) }
     }
 
-    "observarBajoMinimo delega el flujo" {
-        every { dao.observarBajoMinimo() } returns flowOf(listOf(producto))
-        repository.observarBajoMinimo().first() shouldBe listOf(producto)
+    "crear usa POST" {
+        coEvery { api.crearProducto(producto) } returns producto
+        runTest { repo.insertar(producto) }
+        coVerify(exactly = 1) { api.crearProducto(producto) }
     }
 
-    "obtenerPorId delega la consulta suspendida" {
-        coEvery { dao.obtenerPorId(7L) } returns producto
-        runTest { repository.obtenerPorId(7L) shouldBe producto }
-        coVerify(exactly = 1) { dao.obtenerPorId(7L) }
+    "editar usa PUT" {
+        coEvery { api.actualizarProducto(7L, producto) } returns producto
+        runTest { repo.actualizar(producto) }
+        coVerify(exactly = 1) { api.actualizarProducto(7L, producto) }
     }
 
-    "insertar actualizar y eliminar delegan al DAO" {
-        coEvery { dao.insertar(producto) } returns Unit
-        coEvery { dao.actualizar(producto) } returns Unit
-        coEvery { dao.eliminar(producto) } returns Unit
-        runTest {
-            repository.insertar(producto)
-            repository.actualizar(producto)
-            repository.eliminar(producto)
-        }
-        coVerify(exactly = 1) { dao.insertar(producto) }
-        coVerify(exactly = 1) { dao.actualizar(producto) }
-        coVerify(exactly = 1) { dao.eliminar(producto) }
+    "eliminar usa DELETE" {
+        coEvery { api.eliminarProducto(7L) } returns Unit
+        runTest { repo.eliminar(producto) }
+        coVerify(exactly = 1) { api.eliminarProducto(7L) }
     }
 })
