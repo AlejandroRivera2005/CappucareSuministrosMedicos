@@ -1,7 +1,7 @@
 
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.tasks.JacocoReport
-
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -28,13 +28,21 @@ android {
         testInstrumentationRunner =
             "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    signingConfigs {
+        create("release") {
+            storeFile = file("cappucare-key.jks")   // ruta del .jks dentro de app/
+            storePassword = "cappucare"
+            keyAlias = "cappucare-key"
+            keyPassword = "cappucare"
+        }
+    }
     buildTypes {
         debug {
             enableUnitTestCoverage = true
         }
 
         release {
+            signingConfig = signingConfigs.getByName("release")
             optimization {
                 enable = true
                 packageScope = setOf(
@@ -162,6 +170,10 @@ tasks.withType<Test>().configureEach {
     javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(JavaLanguageVersion.of(21))
     })
+    extensions.configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
 }
 
 val coverageExcludes = listOf(
@@ -178,7 +190,12 @@ val coverageExcludes = listOf(
     "**/model/local/**",
     "**/model/NotificadorStock*",
     "**/model/pokemon/remote/**",
-    "**/view/**"
+    "**/view/**",
+    "**/hilt_aggregated_deps/**",
+    "**/dagger/hilt/internal/**",
+    "**/ComposableSingletons*",
+    "**/Hilt_*",
+    "**/*_GeneratedInjector*"
 )
 
 val coverageClasses = files(
