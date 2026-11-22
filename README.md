@@ -13,78 +13,20 @@ El patrón arquitectónico de esta aplicación es Model - View - ViewModel (MVVM
 
 ```text
 .
-|   CappucareApp.kt
-|   MainActivity.kt
-|
-+---di
-|       DatabaseModule.kt
-|
-+---model
-|   |   MovimientoRepository.kt
-|   |   NotificadorStock.kt
-|   |   ProductoRepository.kt
-|   |   SembradorDatos.kt
-|   |   SesionUsuario.kt
-|   |   UsuarioRepository.kt
-|   |
-|   \---local
-|       |   AppDataBase.kt
-|       |
-|       +---dao
-|       |       MovimientoDao.kt
-|       |       ProductoDao.kt
-|       |       UsuarioDao.kt
-|       |
-|       \---entity
-|               MovimientoEntity.kt
-|               ProductoEntity.kt
-|               UsuarioEntity.kt
-|
-+---view
-|   +---components
-|   |       CampoFormulario.kt
-|   |       EtiquetaEstado.kt
-|   |       FilaMovimiento.kt
-|   |       HistorialProducto.kt
-|   |
-|   +---navigation
-|   |       AppNavHost.kt
-|   |       BarraNavegacion.kt
-|   |
-|   +---screens
-|   |       AlertasScreen.kt
-|   |       EscanerScreen.kt
-|   |       HistorialScreen.kt
-|   |       HomeScreen.kt
-|   |       LoginScreen.kt
-|   |       MovimientoScreen.kt
-|   |       ProductoDetalleScreen.kt
-|   |       ProductoFormScreen.kt
-|   |       ProductoListaScreen.kt
-|   |       RegistroScreen.kt
-|   |       UsuariosScreen.kt
-|   |
-|   \---theme
-|           Color.kt
-|           Theme.kt
-|           Type.kt
-|
-\---viewModel
-        AlertasViewModel.kt
-        EstadoStockViewModel.kt
-        HistorialProductoViewModel.kt
-        HistorialViewModel.kt
-        HomeViewModel.kt
-        ItemHistorial.kt
-        LoginViewModel.kt
-        MovimientoViewModel.kt
-        ProductoDetalleViewModel.kt
-        ProductoFormViewModel.kt
-        ProductoListaViewModel.kt
-        RegistroViewModel.kt
-        SesionViewModel.kt
-        UsuariosViewModel.kt
-        Validadores.kt
+├───di
+├───model
+│   ├───local
+│   │   ├───dao
+│   │   └───entity
+│   ├───pokemon
+│   │   └───remote
+│   └───remote
+├───view
+│   ├───components
+│   ├───navigation
+│   ├───screens
+│   └───theme
+└───viewModel
 ```
 
 ## Arquitectura de software
