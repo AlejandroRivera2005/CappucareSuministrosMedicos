@@ -55,4 +55,24 @@ También se ha cargado un usuario de ejemplo, para poder acceder a la aplicació
 ## Inicio de sesión para el testeo de la aplicación completa
 Para registrar un usuario, se debe utilizar la pantalla designada para registrarse. Sin embargo, al tratarse de una aplicación utilizada al interior de una empresa, y únicamente dentro del nicho de esta empresa, todos los usuarios registrados deben ser autorizados por un Encargado antes de poder completar exitosamente el inicio de sesión. Puede utilizarse al usuario de ejemplo para autorizar cuentas creadas durante el uso de la aplicación, y así poder evaluar este apartado y el resto de funcionalidades posteriores a esta.
 
+## Implementación de APIs
+Este proyecto cuenta con la implementación de 2 APIs por exigencia de la evaluación parcial 3. Una de estas es la PokéAPI, dentro de HomeScreen, el botón con un signo de interrogación (?) provoca el llamado de esta, mostrando un Pokémon aleatorio.
+
+La segunda API es realizada por nosotros, corresponde a la adaptación de Producto y Movimiento hacia una API REST. El Framework utilizado es Spring Boot, junto con la base de datos relacional PostgreSQL. El sistema de usuarios sigue siendo local, esta API sólo está encargada de los productos y movimientos.
+
+URL de la API: http://54.88.63.9:8080/
+
+## Endpoints de nuestra API:
+
+GET: 
+- /api/productos
+- /api/productos/{id}
+- /api/movimientos
+- /api/movimientos/producto/{id}
+POST:
+- /api/productos
+- /api/movimientos
+PUT y DELETE:
+- /api/productos/{id}
+
 
