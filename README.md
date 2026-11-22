@@ -69,9 +69,11 @@ GET:
 - /api/productos/{id}
 - /api/movimientos
 - /api/movimientos/producto/{id}
+
 POST:
 - /api/productos
 - /api/movimientos
+
 PUT y DELETE:
 - /api/productos/{id}
 
