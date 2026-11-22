@@ -3,6 +3,9 @@
 ## Grupo 7
 Integrantes: Félix Rojas y Alejandro Rivera.
 
+## Link del repo del backend
+https://github.com/nicolastapiarojas55-commits/Cappucare-Backend
+
 ## Sinapsis
 Esta aplicación para android fue realizada como encargo para la empresa de Cappucare, tiene el propósito general de facilitar las labores de gestión de bodega para esta misma, con el contexto especial de ser una bodega de insumos médicos.
 
