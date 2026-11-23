@@ -3,6 +3,9 @@
 ## Grupo 7
 Integrantes: Félix Rojas y Alejandro Rivera.
 
+## ENLACE CON APK FIRMADA
+https://drive.google.com/file/d/14_pVyOJr8yDPKFYKykfFNCb0y2BMOm7M/view?usp=sharing
+
 ## Link del repo del backend
 https://github.com/nicolastapiarojas55-commits/Cappucare-Backend
 
