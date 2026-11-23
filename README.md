@@ -3,6 +3,9 @@
 ## Grupo 7
 Integrantes: Félix Rojas y Alejandro Rivera.
 
+## Link del repo del backend
+https://github.com/nicolastapiarojas55-commits/Cappucare-Backend
+
 ## Sinapsis
 Esta aplicación para android fue realizada como encargo para la empresa de Cappucare, tiene el propósito general de facilitar las labores de gestión de bodega para esta misma, con el contexto especial de ser una bodega de insumos médicos.
 
@@ -13,78 +16,20 @@ El patrón arquitectónico de esta aplicación es Model - View - ViewModel (MVVM
 
 ```text
 .
-|   CappucareApp.kt
-|   MainActivity.kt
-|
-+---di
-|       DatabaseModule.kt
-|
-+---model
-|   |   MovimientoRepository.kt
-|   |   NotificadorStock.kt
-|   |   ProductoRepository.kt
-|   |   SembradorDatos.kt
-|   |   SesionUsuario.kt
-|   |   UsuarioRepository.kt
-|   |
-|   \---local
-|       |   AppDataBase.kt
-|       |
-|       +---dao
-|       |       MovimientoDao.kt
-|       |       ProductoDao.kt
-|       |       UsuarioDao.kt
-|       |
-|       \---entity
-|               MovimientoEntity.kt
-|               ProductoEntity.kt
-|               UsuarioEntity.kt
-|
-+---view
-|   +---components
-|   |       CampoFormulario.kt
-|   |       EtiquetaEstado.kt
-|   |       FilaMovimiento.kt
-|   |       HistorialProducto.kt
-|   |
-|   +---navigation
-|   |       AppNavHost.kt
-|   |       BarraNavegacion.kt
-|   |
-|   +---screens
-|   |       AlertasScreen.kt
-|   |       EscanerScreen.kt
-|   |       HistorialScreen.kt
-|   |       HomeScreen.kt
-|   |       LoginScreen.kt
-|   |       MovimientoScreen.kt
-|   |       ProductoDetalleScreen.kt
-|   |       ProductoFormScreen.kt
-|   |       ProductoListaScreen.kt
-|   |       RegistroScreen.kt
-|   |       UsuariosScreen.kt
-|   |
-|   \---theme
-|           Color.kt
-|           Theme.kt
-|           Type.kt
-|
-\---viewModel
-        AlertasViewModel.kt
-        EstadoStockViewModel.kt
-        HistorialProductoViewModel.kt
-        HistorialViewModel.kt
-        HomeViewModel.kt
-        ItemHistorial.kt
-        LoginViewModel.kt
-        MovimientoViewModel.kt
-        ProductoDetalleViewModel.kt
-        ProductoFormViewModel.kt
-        ProductoListaViewModel.kt
-        RegistroViewModel.kt
-        SesionViewModel.kt
-        UsuariosViewModel.kt
-        Validadores.kt
+├───di
+├───model
+│   ├───local
+│   │   ├───dao
+│   │   └───entity
+│   ├───pokemon
+│   │   └───remote
+│   └───remote
+├───view
+│   ├───components
+│   ├───navigation
+│   ├───screens
+│   └───theme
+└───viewModel
 ```
 
 ## Arquitectura de software
@@ -112,5 +57,27 @@ También se ha cargado un usuario de ejemplo, para poder acceder a la aplicació
 
 ## Inicio de sesión para el testeo de la aplicación completa
 Para registrar un usuario, se debe utilizar la pantalla designada para registrarse. Sin embargo, al tratarse de una aplicación utilizada al interior de una empresa, y únicamente dentro del nicho de esta empresa, todos los usuarios registrados deben ser autorizados por un Encargado antes de poder completar exitosamente el inicio de sesión. Puede utilizarse al usuario de ejemplo para autorizar cuentas creadas durante el uso de la aplicación, y así poder evaluar este apartado y el resto de funcionalidades posteriores a esta.
+
+## Implementación de APIs
+Este proyecto cuenta con la implementación de 2 APIs por exigencia de la evaluación parcial 3. Una de estas es la PokéAPI, dentro de HomeScreen, el botón con un signo de interrogación (?) provoca el llamado de esta, mostrando un Pokémon aleatorio.
+
+La segunda API es realizada por nosotros, corresponde a la adaptación de Producto y Movimiento hacia una API REST. El Framework utilizado es Spring Boot, junto con la base de datos relacional PostgreSQL. El sistema de usuarios sigue siendo local, esta API sólo está encargada de los productos y movimientos.
+
+URL de la API: http://54.88.63.9:8080/
+
+## Endpoints de nuestra API:
+
+GET: 
+- /api/productos
+- /api/productos/{id}
+- /api/movimientos
+- /api/movimientos/producto/{id}
+
+POST:
+- /api/productos
+- /api/movimientos
+
+PUT y DELETE:
+- /api/productos/{id}
 
 
