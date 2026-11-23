@@ -1,4 +1,3 @@
-
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
@@ -28,29 +27,14 @@ android {
         testInstrumentationRunner =
             "androidx.test.runner.AndroidJUnitRunner"
     }
-    signingConfigs {
-        create("release") {
-            storeFile = file("cappucare-key.jks")   // ruta del .jks dentro de app/
-            storePassword = "cappucare"
-            keyAlias = "cappucare-key"
-            keyPassword = "cappucare"
-        }
-    }
     buildTypes {
         debug {
             enableUnitTestCoverage = true
         }
 
         release {
-            signingConfig = signingConfigs.getByName("release")
-            optimization {
-                enable = true
-                packageScope = setOf(
-                    "androidx.**",
-                    "kotlin.**",
-                    "kotlinx.**"
-                )
-            }
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 

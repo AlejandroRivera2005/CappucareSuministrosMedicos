@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -122,28 +125,6 @@ fun AppNavHost() {
         }
     }
 
-    when (internet) {
-        null -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            return
-        }
-
-        false -> {
-            ConexionEstadoScreen(
-                sinInternet = true,
-                onReintentar = {}
-            )
-            return
-        }
-
-        true -> Unit
-    }
-
     val entradaActual by navController.currentBackStackEntryAsState()
 
     val rutaActual = entradaActual?.destination?.route
@@ -185,264 +166,285 @@ fun AppNavHost() {
         }
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(
-            0.dp,
-            0.dp,
-            0.dp,
-            0.dp
-        ),
-        bottomBar = {
-            if (rutaActual in rutasConBarra) {
-                BarraNavegacion(
-                    rutaActual = rutaActual,
-                    alertas = cantidadAlertas,
-                    onNavegar = irATab
-                )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            contentWindowInsets = WindowInsets(
+                0.dp,
+                0.dp,
+                0.dp,
+                0.dp
+            ),
+            bottomBar = {
+                if (rutaActual in rutasConBarra) {
+                    BarraNavegacion(
+                        rutaActual = rutaActual,
+                        alertas = cantidadAlertas,
+                        onNavegar = irATab
+                    )
+                }
             }
-        }
-    ) { innerPadding ->
+        ) { innerPadding ->
 
-        val relleno = PaddingValues(
-            bottom = innerPadding.calculateBottomPadding()
-        )
+            val relleno = PaddingValues(
+                bottom = innerPadding.calculateBottomPadding()
+            )
 
-        NavHost(
-            navController = navController,
-            startDestination = Rutas.login,
-            modifier = Modifier
-                .padding(relleno)
-                .consumeWindowInsets(relleno)
-        ) {
+            NavHost(
+                navController = navController,
+                startDestination = Rutas.login,
+                modifier = Modifier
+                    .padding(relleno)
+                    .consumeWindowInsets(relleno)
+            ) {
 
-            composable(Rutas.login) {
-                LoginScreen(
-                    onLoginExitoso = {
-                        navController.navigate(Rutas.home) {
-                            popUpTo(Rutas.login) {
-                                inclusive = true
+                composable(Rutas.login) {
+                    LoginScreen(
+                        onLoginExitoso = {
+                            navController.navigate(Rutas.home) {
+                                popUpTo(Rutas.login) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
                             }
-                            launchSingleTop = true
+                        },
+                        onIrARegistro = {
+                            navController.navigate(Rutas.registro)
                         }
-                    },
-                    onIrARegistro = {
-                        navController.navigate(Rutas.registro)
-                    }
-                )
-            }
+                    )
+                }
 
-            composable(Rutas.registro) {
-                RegistroScreen(
-                    onRegistroExitoso = {
-                        navController.popBackStack()
-                    },
-                    onVolver = {
-                        navController.popBackStack()
-                    }
-                )
-            }
+                composable(Rutas.registro) {
+                    RegistroScreen(
+                        onRegistroExitoso = {
+                            navController.popBackStack()
+                        },
+                        onVolver = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
 
-            composable(Rutas.mantenimiento) {
-                ConexionEstadoScreen(
-                    sinInternet = false,
-                    comprobando = comprobando,
-                    onReintentar = {
-                        if (!comprobando && internet == true) {
-                            scope.launch {
-                                comprobando = true
+                composable(Rutas.mantenimiento) {
+                    ConexionEstadoScreen(
+                        sinInternet = false,
+                        comprobando = comprobando,
+                        onReintentar = {
+                            if (!comprobando && internet == true) {
+                                scope.launch {
+                                    comprobando = true
 
-                                try {
-                                    if (conexionViewModel.apiDisponible()) {
-                                        navController.navigate(
-                                            destinoPendiente
-                                        ) {
-                                            popUpTo(Rutas.mantenimiento) {
-                                                inclusive = true
+                                    try {
+                                        if (conexionViewModel.apiDisponible()) {
+                                            navController.navigate(
+                                                destinoPendiente
+                                            ) {
+                                                popUpTo(Rutas.mantenimiento) {
+                                                    inclusive = true
+                                                }
+                                                launchSingleTop = true
                                             }
-                                            launchSingleTop = true
                                         }
+                                    } finally {
+                                        comprobando = false
                                     }
-                                } finally {
-                                    comprobando = false
                                 }
                             }
+                        },
+                        onVolver = {
+                            navController.popBackStack()
                         }
-                    },
-                    onVolver = {
-                        navController.popBackStack()
-                    }
-                )
-            }
+                    )
+                }
 
-            composable(Rutas.home) {
-                val homeViewModel: HomeViewModel = hiltViewModel()
+                composable(Rutas.home) {
+                    val homeViewModel: HomeViewModel = hiltViewModel()
 
-                val estado by homeViewModel.uiState.collectAsState()
+                    val estado by homeViewModel.uiState.collectAsState()
 
-                val pokemonViewModel: PokemonAleatorioViewModel =
-                    hiltViewModel()
+                    val pokemonViewModel: PokemonAleatorioViewModel =
+                        hiltViewModel()
 
-                val pokemon by pokemonViewModel.uiState.collectAsState()
+                    val pokemon by pokemonViewModel.uiState.collectAsState()
 
-                HomeScreen(
-                    nombre = estado.nombre,
-                    esEncargado = estado.esEncargado,
-                    pendientes = estado.pendientes,
-                    onIrAProductos = {
-                        irATab(Rutas.productos)
-                    },
-                    onIrAMovimientos = {
-                        navegarConVerificacion(Rutas.movimientos)
-                    },
-                    onIrAEscaner = {
-                        irATab(Rutas.escaner)
-                    },
-                    onIrAUsuarios = {
-                        navController.navigate(Rutas.usuarios)
-                    },
-                    onCerrarSesion = {
-                        homeViewModel.cerrarSesion()
+                    HomeScreen(
+                        nombre = estado.nombre,
+                        esEncargado = estado.esEncargado,
+                        pendientes = estado.pendientes,
+                        onIrAProductos = {
+                            irATab(Rutas.productos)
+                        },
+                        onIrAMovimientos = {
+                            navegarConVerificacion(Rutas.movimientos)
+                        },
+                        onIrAEscaner = {
+                            irATab(Rutas.escaner)
+                        },
+                        onIrAUsuarios = {
+                            navController.navigate(Rutas.usuarios)
+                        },
+                        onCerrarSesion = {
+                            homeViewModel.cerrarSesion()
 
-                        navController.navigate(Rutas.login) {
-                            popUpTo(Rutas.home) {
-                                inclusive = true
+                            navController.navigate(Rutas.login) {
+                                popUpTo(Rutas.home) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
                             }
-                            launchSingleTop = true
+                        },
+                        pokemon = pokemon,
+                        onLlamarPokemon = pokemonViewModel::llamar,
+                        onCerrarPokemon = pokemonViewModel::cerrar
+                    )
+                }
+
+                composable(Rutas.usuarios) {
+                    UsuariosScreen(
+                        onVolver = {
+                            navController.popBackStack()
                         }
-                    },
-                    pokemon = pokemon,
-                    onLlamarPokemon = pokemonViewModel::llamar,
-                    onCerrarPokemon = pokemonViewModel::cerrar
-                )
+                    )
+                }
+
+                composable(Rutas.movimientos) {
+                    HistorialScreen(
+                        onVolver = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(Rutas.escaner) {
+                    EscanerScreen(
+                        onVolver = {
+                            irATab(Rutas.home)
+                        }
+                    )
+                }
+
+                composable(Rutas.alertas) {
+                    AlertasScreen(
+                        onVerDetalle = { id ->
+                            navController.navigate(Rutas.detalle(id))
+                        }
+                    )
+                }
+
+                composable(Rutas.productos) {
+                    ProductoListaScreen(
+                        onVolver = {
+                            irATab(Rutas.home)
+                        },
+                        onNuevo = {
+                            navController.navigate(Rutas.producto_nuevo)
+                        },
+                        onVerDetalle = { id ->
+                            navController.navigate(Rutas.detalle(id))
+                        },
+                        puedeCrear = esEncargado
+                    )
+                }
+
+                composable(Rutas.producto_nuevo) {
+                    ProductoFormScreen(
+                        onVolver = {
+                            navController.popBackStack()
+                        },
+                        onGuardado = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(
+                    Rutas.producto_detalle,
+                    arguments = listOf(
+                        navArgument("productoId") {
+                            type = NavType.LongType
+                        }
+                    )
+                ) { entrada ->
+
+                    val id = entrada.arguments?.getLong("productoId")
+                        ?: return@composable
+
+                    ProductoDetalleScreen(
+                        onVolver = {
+                            navController.popBackStack()
+                        },
+                        onEditar = {
+                            navController.navigate(Rutas.editar(id))
+                        },
+                        onEliminado = {
+                            navController.popBackStack()
+                        },
+                        onRegistrarMovimiento = { tipo ->
+                            navController.navigate(
+                                Rutas.movimiento(id, tipo)
+                            )
+                        },
+                        esEncargado = esEncargado
+                    )
+                }
+
+                composable(
+                    Rutas.producto_editar,
+                    arguments = listOf(
+                        navArgument("productoId") {
+                            type = NavType.LongType
+                        }
+                    )
+                ) {
+                    ProductoFormScreen(
+                        onVolver = {
+                            navController.popBackStack()
+                        },
+                        onGuardado = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(
+                    Rutas.producto_movimiento,
+                    arguments = listOf(
+                        navArgument("productoId") {
+                            type = NavType.LongType
+                        },
+                        navArgument("tipo") {
+                            type = NavType.StringType
+                        }
+                    )
+                ) {
+                    MovimientoScreen(
+                        onVolver = {
+                            navController.popBackStack()
+                        },
+                        onGuardado = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
-
-            composable(Rutas.usuarios) {
-                UsuariosScreen(
-                    onVolver = {
-                        navController.popBackStack()
+        }
+        if (internet != true) {
+            BackHandler(enabled = true) {}
+            Surface(modifier = Modifier.fillMaxSize()) {
+                if (internet == null) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                )
-            }
-
-            composable(Rutas.movimientos) {
-                HistorialScreen(
-                    onVolver = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable(Rutas.escaner) {
-                EscanerScreen(
-                    onVolver = {
-                        irATab(Rutas.home)
-                    }
-                )
-            }
-
-            composable(Rutas.alertas) {
-                AlertasScreen(
-                    onVerDetalle = { id ->
-                        navController.navigate(Rutas.detalle(id))
-                    }
-                )
-            }
-
-            composable(Rutas.productos) {
-                ProductoListaScreen(
-                    onVolver = {
-                        irATab(Rutas.home)
-                    },
-                    onNuevo = {
-                        navController.navigate(Rutas.producto_nuevo)
-                    },
-                    onVerDetalle = { id ->
-                        navController.navigate(Rutas.detalle(id))
-                    },
-                    puedeCrear = esEncargado
-                )
-            }
-
-            composable(Rutas.producto_nuevo) {
-                ProductoFormScreen(
-                    onVolver = {
-                        navController.popBackStack()
-                    },
-                    onGuardado = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable(
-                Rutas.producto_detalle,
-                arguments = listOf(
-                    navArgument("productoId") {
-                        type = NavType.LongType
-                    }
-                )
-            ) { entrada ->
-
-                val id = entrada.arguments?.getLong("productoId")
-                    ?: return@composable
-
-                ProductoDetalleScreen(
-                    onVolver = {
-                        navController.popBackStack()
-                    },
-                    onEditar = {
-                        navController.navigate(Rutas.editar(id))
-                    },
-                    onEliminado = {
-                        navController.popBackStack()
-                    },
-                    onRegistrarMovimiento = { tipo ->
-                        navController.navigate(
-                            Rutas.movimiento(id, tipo)
-                        )
-                    },
-                    esEncargado = esEncargado
-                )
-            }
-
-            composable(
-                Rutas.producto_editar,
-                arguments = listOf(
-                    navArgument("productoId") {
-                        type = NavType.LongType
-                    }
-                )
-            ) {
-                ProductoFormScreen(
-                    onVolver = {
-                        navController.popBackStack()
-                    },
-                    onGuardado = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable(
-                Rutas.producto_movimiento,
-                arguments = listOf(
-                    navArgument("productoId") {
-                        type = NavType.LongType
-                    },
-                    navArgument("tipo") {
-                        type = NavType.StringType
-                    }
-                )
-            ) {
-                MovimientoScreen(
-                    onVolver = {
-                        navController.popBackStack()
-                    },
-                    onGuardado = {
-                        navController.popBackStack()
-                    }
-                )
+                } else {
+                    ConexionEstadoScreen(
+                        sinInternet = true,
+                        onReintentar = {}
+                    )
+                }
             }
         }
     }
 }
+

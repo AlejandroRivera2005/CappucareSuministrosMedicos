@@ -162,15 +162,14 @@ class MainActivity : ComponentActivity() {
         val cancelacion = CancellationSignal()
         solicitud = cancelacion
 
-        val prompt = BiometricPrompt.Builder(this)
-            .setTitle("Desbloquear Cappucare")
-            .setSubtitle(
-                "Utiliza tus datos biométricos o el bloqueo del teléfono"
-            )
-            .setAllowedAuthenticators(autenticadores)
-            .build()
-
         try {
+            val prompt = BiometricPrompt.Builder(this)
+                .setTitle("Desbloquear Cappucare")
+                .setSubtitle(
+                    "Utiliza tus datos biométricos o el bloqueo del teléfono"
+                )
+                .setAllowedAuthenticators(autenticadores)
+                .build()
             prompt.authenticate(
                 cancelacion,
                 mainExecutor,
@@ -215,3 +214,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
